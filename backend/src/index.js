@@ -13,23 +13,24 @@ dotenv.config();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
-// Middleware to set CSP header (Allow fonts from fonts.gstatic.com and script from the specified domain)
+// Middleware to set CSP header
 app.use((req, res, next) => {
     res.setHeader(
         'Content-Security-Policy',
-        "default-src 'none'; font-src 'self' https://fonts.gstatic.com; script-src 'self' https://x-chat-csjv.onrender.com; object-src 'none'; style-src 'self';"
+        "default-src 'none'; font-src 'self' https://fonts.gstatic.com; script-src 'self' https://x-chat-csjv.onrender.com; object-src 'none'; style-src 'self' 'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=';"
     );
     next();
 });
 
 // Middleware
-app.use(express.json({ limit: "10mb" })); // Increase JSON payload size limit
-app.use(express.urlencoded({ limit: "10mb", extended: true })); // Increase URL-encoded payload size limit
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 
+// CORS Configuration
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: process.env.NODE_ENV === "production" ? "https://your-frontend-domain.com" : "http://localhost:5173",
         credentials: true,
     })
 );
@@ -38,6 +39,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
+// Serve static assets in production
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname, "../frontend/dist")));
   
